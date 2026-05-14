@@ -12,7 +12,7 @@ class PanelFields{
 	var $forPage;
 	var $excludeVersion;
 	
-	function PanelFields($id, $displayName, $cssId, $defaultChecked, $isAdvancedField, $forPost, $forPage, $excludeVersion){
+	function __construct($id, $displayName, $cssId, $defaultChecked, $isAdvancedField, $forPost, $forPage, $excludeVersion){
 		$this->id = $id;	
 		$this->displayName = $displayName;
 		$this->cssId = $cssId;

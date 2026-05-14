@@ -20,10 +20,11 @@ function RelatedTypeOrderByFilter($orderby) {
   
 class RCCWP_WritePostPage  {
 
-	function mf_category_order($cats,$parent=0,$depth = 0,$resp = array() ){
+	public static function mf_category_order($cats,$parent=0,$depth = 0,$resp = array() ){
     	foreach($cats as $k => $cat){
       		if($cat->parent == $parent){
         		$term_id = $cat->term_id;
+        		if (!isset($resp[$term_id])) $resp[$term_id] = new stdClass();
         		$resp[$term_id]->term_id = $term_id;
         		$resp[$term_id]->name = sprintf('%s%s',str_repeat('&nbsp;', $depth * 4),$cat->slug);
         		unset($cats[$k]);
@@ -34,17 +35,13 @@ class RCCWP_WritePostPage  {
   	}
 
 	public static function ApplyWritePanelAssignedCategoriesOrTemplate(){
-		global $CUSTOM_WRITE_PANEL,$post,$wp_version;
+		global $CUSTOM_WRITE_PANEL,$post;
 
 		if (empty($CUSTOM_WRITE_PANEL) || empty($post) || !is_object($post)) {
 			return;
 		}
-		
-		if(substr($wp_version, 0, 3) < 3.0){
-		  $check = "draft";
-	  }else{
-	    $check = "auto-draft";
-	  }
+
+		$check = "auto-draft";
 		if($post->post_status == $check){
 	
 			if($post->post_type == "post"){
@@ -116,7 +113,7 @@ class RCCWP_WritePostPage  {
 	}
 
 	public static function EnqueueAdminAssets(){
-		global $CUSTOM_WRITE_PANEL, $post, $wp_version;
+		global $CUSTOM_WRITE_PANEL, $post;
 
 		if (empty($CUSTOM_WRITE_PANEL)) {
 			return;
@@ -185,7 +182,7 @@ class RCCWP_WritePostPage  {
 			return;
 		}
 
-		$check = (substr($wp_version, 0, 3) < 3.0) ? 'draft' : 'auto-draft';
+		$check = 'auto-draft';
 		if ($post->post_status != $check) {
 			return;
 		}
@@ -1368,13 +1365,14 @@ if( isset( $customField->properties['strict-max-length'] ) && $customField->prop
 		}
 	}
 
-	function DateInterface($customField, $inputName, $groupCounter, $fieldCounter) {
+	public static function DateInterface($customField, $inputName, $groupCounter, $fieldCounter) {
 		global $wpdb;
 		$customFieldId = '';
+		$raw_value = '';
     $mf_post_id = apply_filters('mf_source_post_data', @$_REQUEST['post']);
-		
+
 		$idField = RCCWP_WritePostPage::changeNameInput($inputName);
-		
+
 		if (isset($mf_post_id)) {
 			$customFieldId = $customField->id;
 			$value = esc_attr(RCCWP_CustomField::GetCustomFieldValues(true, $mf_post_id, $customField->name, $groupCounter, $fieldCounter));
@@ -1455,12 +1453,14 @@ if( isset( $customField->properties['strict-max-length'] ) && $customField->prop
 		
 		$idField = RCCWP_WritePostPage::changeNameInput($inputName);
 		$customFieldId = '';
-		$freshPageFolderName = (dirname(plugin_basename(__FILE__))); 
+		$freshPageFolderName = (dirname(plugin_basename(__FILE__)));
 		$requiredClass = "";
+		$value = '';
+		$valueOriginalRelative = '';
     $mf_post_id = apply_filters('mf_source_post_data', @$_REQUEST['post']);
 
 		if ($customField->required_field) $requiredClass = "field_required";
-		
+
 		if (isset($mf_post_id)) {
 			$customFieldId = $customField->id;
 			$valueOriginal = RCCWP_CustomField::GetCustomFieldValues(true, $mf_post_id, $customField->name, $groupCounter, $fieldCounter);
@@ -1468,12 +1468,8 @@ if( isset( $customField->properties['strict-max-length'] ) && $customField->prop
 			if(empty($valueOriginal)){
 				$valueOriginal = '';
 			}
-			
-			if(empty($valueOriginalRelative)){
-				$valueOriginalRelative = '';
-			}
-			
-			$$valueOriginalRelative = $valueOriginal;
+
+			$valueOriginalRelative = $valueOriginal;
 			$valueOriginal = $path.$valueOriginal;
 			if (!empty($valueOriginal))
 				$value = stripslashes(trim("\<div  id='obj-{$idField}' style=\'width:260px;padding-top:3px;\'\>\<object classid=\'clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\' codebase='\http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,19,0\' width=\'95%\' height=\'20\' wmode=\'transparent\' \>\<param name=\'movie\' value=\'".MF_URI."js/singlemp3player.swf?file=".urlencode($valueOriginal)."\' wmode=\'transparent\' /\>\<param name=\'quality\' value=\'high\' wmode=\'transparent\' /\>\<embed src=\'".MF_URI."js/singlemp3player.swf?file=".urlencode($valueOriginal)."' width=\'100\%\' height=\'20\' quality=\'high\' pluginspage=\'http://www.macromedia.com/go/getflashplayer\' type=\'application/x-shockwave-flash\' wmode=\'transparent\' \>\</embed\>\</object\>\</div\><br />"));			
@@ -1525,18 +1521,14 @@ if( isset( $customField->properties['strict-max-length'] ) && $customField->prop
 		</script>
 		
 		<div class="mf-audio-value-actions">
-		<?php 
-		if( !empty($$valueOriginalRelative)){ 
-			echo '<div class="mf-audio-value">'.$value.'</div>'; 
+		<?php
+		if( !empty($valueOriginalRelative)){
+			echo '<div class="mf-audio-value">'.$value.'</div>';
 			echo "<div id='actions-{$idField}' class='actions-audio'><a href='javascript:void(0);' id='remove-{$idField}' class='remove-audio'>".__("Delete",$mf_domain)."</a></div>";
 		} else {
-			echo '<div class="mf-audio-value"></div>'; 
+			echo '<div class="mf-audio-value"></div>';
 			echo "<div id='actions-{$idField}' class='actions-audio' style='display: none'><a href='javascript:void(0);' id='remove-{$idField}' class='remove-audio'>".__("Delete",$mf_domain)."</a></div>";
 	  }
-	  
-		if(empty($valueOriginalRelative)){
-			$valueOriginalRelative = '';
-		}
 		?>
 	  </div>
 	  <!-- /.mf-audio-value-actions -->
@@ -1545,10 +1537,10 @@ if( isset( $customField->properties['strict-max-length'] ) && $customField->prop
 		<input tabindex="3" 
 			id="<?php echo $idField?>" 
 			name="<?php echo $inputName?>" 
-			type="hidden" 
+			type="hidden"
 			class="<?php echo $requiredClass;?>"
 			size="46"
-			value="<?php echo $$valueOriginalRelative?>"
+			value="<?php echo $valueOriginalRelative?>"
 			<?php if ($customField->required_field) echo 'validate="required:true"'; ?>	
 			/>
 	

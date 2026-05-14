@@ -9,24 +9,31 @@ Class MF_PostTypePages{
 	 *
 	 * @todo Add a more descriptive help
 	 */
-	function TopMenu(){
+	public static function TopMenu(){
 		global $mf_domain;
 		// Add top menu
 		/**
-		 * For now this menu is only displayed for the admin user, i think to this will change soon 
-		 */ 
-		$post_type_screen = add_submenu_page('MagicFieldsMenu', __('Post Types',$mf_domain), __('Post types',$mf_domain),10,'mf_posttypes',array('MF_PostTypePages','Dispacher'));
+		 * For now this menu is only displayed for the admin user, i think to this will change soon
+		 */
+		$post_type_screen = add_submenu_page('MagicFieldsMenu', __('Post Types',$mf_domain), __('Post types',$mf_domain),'manage_options','mf_posttypes',array('MF_PostTypePages','Dispacher'));
 
-		add_contextual_help($post_type_screen,
-			'<p>' . __('Hi you can create and manage Post Types here'). '</p>'
-		);
+		add_action('load-' . $post_type_screen, function() use ($mf_domain) {
+			$screen = get_current_screen();
+			if ($screen) {
+				$screen->add_help_tab(array(
+					'id'      => 'mf_posttypes_help',
+					'title'   => __('Overview', $mf_domain),
+					'content' => '<p>' . __('Hi you can create and manage Post Types here', $mf_domain) . '</p>',
+				));
+			}
+		});
 	}
 
 	/** 
 	 * Determine which action will be executed
 	 *
 	 */
-	function Dispacher(){
+	public static function Dispacher(){
 		if(empty($_GET['action'])){
 			$action = "manage";
 		}else{
@@ -52,12 +59,11 @@ Class MF_PostTypePages{
 	 * @todo Which others columns will be  displayed on this table?
 	 *
 	 */
-	function ManagePosttype(){
+	public static function ManagePostType(){
 		global $mf_domain,$wpdb;
 
 		//Getting the  Custom types
-		$sql = $wpdb->prepare( "SELECT id,name FROM " . MF_TABLE_POSTTYPES_TAXONOMIES );
-		$items = $wpdb->get_results($sql);
+		$items = $wpdb->get_results( "SELECT id,name FROM " . MF_TABLE_POSTTYPES_TAXONOMIES );
 	
 		$customtypes =  "";
 		foreach($items as $key => $value){
@@ -107,7 +113,7 @@ Class MF_PostTypePages{
 	 * @todo Add section of REWRITE
 	 * @todo Improve the help text
 	 */
-	function AddPosttype(){
+	public static function AddPostType(){
 		global $mf_domain;
 
 		print
@@ -171,7 +177,7 @@ Class MF_PostTypePages{
 	/** 
 	 * Save a New Post type
 	 */
-	function SavePostType(){
+	public static function SavePostType(){
 		global $wpdb;
 		if(!empty($_POST)){
 
@@ -204,7 +210,7 @@ Class MF_PostTypePages{
 		global $wpdb;
 		//this table is already installed?
 
-		if($wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE ".MF_TABLE_POSTTYPES_TAXONOMIES ) ) != MF_TABLE_POSTTYPES_TAXONOMIES) {
+		if($wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", MF_TABLE_POSTTYPES_TAXONOMIES ) ) != MF_TABLE_POSTTYPES_TAXONOMIES) {
 			$sql =	"CREATE TABLE ".MF_TABLE_POSTTYPES_TAXONOMIES. " (
 						id mediumint(9) NOT NULL AUTO_INCREMENT ,
 						type varchar(10) NOT NULL DEFAULT 'posttype',

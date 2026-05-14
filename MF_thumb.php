@@ -138,30 +138,30 @@ function mf_image_resize_dimensions($orig_w, $orig_h, $dest_w, $dest_h, $crop = 
 			case 'TL':
 			case 'BL':
 				$s_x = 0;
-				$s_y = round(($dest_h - $origin_h) / 2);
+				$s_y = round(($dest_h - $orig_h) / 2);
 				break;
 			case 'R':
 			case 'TR':
 			case 'BR':
-				$s_x =  round($dest_w  - $origin_w);
-				$s_y = round(($dest_h - $origin_h) / 2);
+				$s_x =  round($dest_w  - $orig_w);
+				$s_y = round(($dest_h - $orig_h) / 2);
 				break;
 			case 'T':
 			case 'TL':
 			case 'TR':
-				$s_x = round(($dest_w  - $origin_w)  / 2);
+				$s_x = round(($dest_w  - $orig_w)  / 2);
 				$s_y = 0;
 				break;
 			case 'B':
 			case 'BL':
 			case 'BR':
-				$s_x = round(($dest_w  - $origin_w)  / 2);
-				$s_y =  round($dest_h - $origin_h);
+				$s_x = round(($dest_w  - $orig_w)  / 2);
+				$s_y =  round($dest_h - $orig_h);
 				break;
 			case 'C':
 			default:
-				$s_x = round(($dest_w  - $origin_w)  / 2);
-				$s_y = round(($dest_h - $origin_h) / 2);
+				$s_x = round(($dest_w  - $orig_w)  / 2);
+				$s_y = round(($dest_h - $orig_h) / 2);
                                 
 		}
                 

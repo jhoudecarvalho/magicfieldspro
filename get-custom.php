@@ -32,6 +32,17 @@ require_once 'tools/debug.php';
 		}
 	return FALSE;
 	}
+
+	/*
+	 * unserialize() wrapper that tolerates non-string input (false/null/empty),
+	 * which is no longer accepted by unserialize() on PHP 8.1+.
+	 */
+	function MF_safe_unserialize( $data ) {
+		if( !is_string( $data ) || $data === '' ) {
+			return FALSE;
+		}
+		return unserialize( $data );
+	}
 	
 	/*
 	 * Function to cache data to specified file
@@ -119,7 +130,7 @@ function get ($fieldName, $groupIndex = 1, $fieldIndex = 1, $readyForEIP = true,
 	if(!$post_id){ $post_id = $post->ID; }
 	
 	$cache_name = $post_id.'/'.$fieldName.'--'.$groupIndex.'--'.$fieldIndex.'.txt';
-	$field = unserialize( MF_get_cached_data( $cache_name, FALSE ) );
+	$field = MF_safe_unserialize( MF_get_cached_data( $cache_name, FALSE ) );
 	
 	// When field is set, but it's empty, it gets a NULL value, but still this value is cached
 	// therefore: if !is_null condition
@@ -165,7 +176,7 @@ function get_clean($fieldName, $groupIndex=1, $fieldIndex=1, $readyForEIP=true,$
 	if(!$post_id){ $post_id = $post->ID; }
 	$cache_name = $post_id.'/_clean-'.$fieldName.'--'.$groupIndex.'--'.$fieldIndex.'.txt';
 
-	$field = unserialize( MF_get_cached_data( $cache_name, FALSE ) );
+	$field = MF_safe_unserialize( MF_get_cached_data( $cache_name, FALSE ) );
 	
 	// When field is set, but it's empty, it gets a NULL value, but still this value is cached
 	// therefore: if !is_null condition
@@ -260,8 +271,9 @@ function GetFieldInfo($customFieldId){
 	global $wpdb;
 	$sql = $wpdb->prepare( "SELECT properties FROM " .MF_TABLE_CUSTOM_FIELD_PROPERTIES. " WHERE custom_field_id = %d", array( $customFieldId ) );
 	$results = $wpdb->get_row($sql);
+	if( !$results ) return FALSE;
 	//$results->options = unserialize($results->options);
-	$results->properties = unserialize($results->properties);
+	$results->properties = MF_safe_unserialize($results->properties);
 	//$results->default_value = unserialize($results->default_value);
 	return $results;
 }
@@ -284,11 +296,12 @@ function getGroupOrder($field_name,$post_id=NULL){
 
 	$sql = $wpdb->prepare( "SELECT DISTINCT(group_count) FROM ".MF_TABLE_POST_META." WHERE post_id = %d  AND field_name = %s ORDER BY order_id ASC", array( $post_id,$field_name ) );
 	$elements  = $wpdb->get_results($sql);
-   
+
+	$order = array();
 	foreach($elements as $element){
 		$order[] =  $element->group_count;
 	}
-	 
+
 	return $order;
 }
 
@@ -302,17 +315,18 @@ function getFieldOrder($field_name,$group=1,$post_id=NULL){
 		$post_id = $post->ID;
 
 	$sql = $wpdb->prepare( "SELECT field_count FROM ".MF_TABLE_POST_META." WHERE post_id = %d AND field_name = %s AND group_count = %d ORDER BY order_id DESC", array( $post_id, $field_name, $group ) );
-	$elements = $wpdb->get_results($sql,ARRAY_A);  
+	$elements = $wpdb->get_results($sql,ARRAY_A);
 
-	foreach($elements as $element){ 
-		$order[] = $element['field_count']; 
-	} 
+	$order = array();
+	foreach($elements as $element){
+		$order[] = $element['field_count'];
+	}
 
-  if( !isset($order) || is_null($order) ) {
-    return array(); 
+  if( empty($order) ) {
+    return array();
   }
 
-	$order = array_reverse($order); 
+	$order = array_reverse($order);
  	sort($order); 
 
 	return $order; 
@@ -602,7 +616,7 @@ function get_group($name_group,$post_id=NULL){
 	if(!$post_id){ $post_id = $post->ID; }
 	
 	$cache_name = $post_id.'/_groups-'. sanitize_title_with_dashes( $name_group ).'.txt';
-	if( !$data_groups = unserialize( MF_get_cached_data( $cache_name, FALSE ) ) ) {
+	if( !$data_groups = MF_safe_unserialize( MF_get_cached_data( $cache_name, FALSE ) ) ) {
 		$sql = $wpdb->prepare( "SELECT pm.field_name, cf.type, pm_wp.meta_value, pm.order_id, pm.field_count, cf.id, fp.properties 
 				FROM 		" . MF_TABLE_POST_META . " pm, " . MF_TABLE_PANEL_GROUPS . " g, $wpdb->postmeta pm_wp,
 							" . MF_TABLE_GROUP_FIELDS . " cf 
@@ -635,7 +649,7 @@ function get_group($name_group,$post_id=NULL){
 					break;
 			case $FIELD_TYPES["checkbox_list"]:
 			case $FIELD_TYPES["listbox"]:
-					$info[$data->order_id][$data->field_name][$data->field_count] = unserialize($data->meta_value);
+					$info[$data->order_id][$data->field_name][$data->field_count] = MF_safe_unserialize($data->meta_value);
 				break;
 			case $FIELD_TYPES["audio"]:
 			case $FIELD_TYPES["file"]:
@@ -644,7 +658,7 @@ function get_group($name_group,$post_id=NULL){
 				break;
 			case $FIELD_TYPES['image']:
 				if($data->meta_value != ""){
-					$format = unserialize($data->properties);
+					$format = MF_safe_unserialize($data->properties);
 					if($format) $info[$data->order_id][$data->field_name][$data->field_count]['t'] = aux_image($data->meta_value,$format['params']);
 					$info[$data->order_id][$data->field_name][$data->field_count]['o'] = MF_FILES_URI.$data->meta_value;		
 					$info[$data->order_id][$data->field_name][$data->field_count]['src'] = MF_FILES_URI.$data->meta_value;	// added a more familiar key for HTML devs!	
@@ -653,7 +667,7 @@ function get_group($name_group,$post_id=NULL){
 				break;
 		  case $FIELD_TYPES['Image (Upload Media)']:
   			if($data->meta_value != ""){
-					$format = unserialize($data->properties);
+					$format = MF_safe_unserialize($data->properties);
   				$image = wp_get_attachment_image_src($data->meta_value,'original');
   				
   				if($format) $info[$data->order_id][$data->field_name][$data->field_count]['t'] = aux_image($image[0],$format['params'],$data->type);
@@ -662,7 +676,7 @@ function get_group($name_group,$post_id=NULL){
   			}
   			break;
 			case $FIELD_TYPES['date']:
-				$format = unserialize($data->properties);
+				$format = MF_safe_unserialize($data->properties);
 				$fieldValue = GetProcessedFieldValue($data->meta_value, $data->type, $format);
 				$info[$data->order_id][$data->field_name][$data->field_count] = $fieldValue;
 				break;
@@ -689,7 +703,7 @@ function get_field_duplicate($fieldName, $groupIndex=1,$post_id=NULL){
 	if(!$post_id){ $post_id = $post->ID; }
 	
 	$cache_name = $post_id.'/_fduplicates-'.$fieldName.'--'.$groupIndex.'.txt';
-	$data_fields = unserialize( MF_get_cached_data( $cache_name, FALSE ) );
+	$data_fields = MF_safe_unserialize( MF_get_cached_data( $cache_name, FALSE ) );
 	
 	// When field is set, but it's empty, it gets a NULL value, but still this value is cached
 	// therefore: if !is_null condition
@@ -727,7 +741,7 @@ function get_field_duplicate($fieldName, $groupIndex=1,$post_id=NULL){
 					break;
 			case $FIELD_TYPES["checkbox_list"]:
 			case $FIELD_TYPES["listbox"]:
-					$info[$data->field_count] = unserialize($data->meta_value);
+					$info[$data->field_count] = MF_safe_unserialize($data->meta_value);
 				break;
 			case $FIELD_TYPES["audio"]:
 			case $FIELD_TYPES["file"]:
@@ -736,19 +750,19 @@ function get_field_duplicate($fieldName, $groupIndex=1,$post_id=NULL){
 				break;
 			case $FIELD_TYPES['image']:
 				if($data->meta_value != ""){
-					$format = unserialize($data->properties);
+					$format = MF_safe_unserialize($data->properties);
 					if($format) $info[$data->field_count]['t'] = aux_image($data->meta_value,$format['params']);
 					$info[$data->field_count]['o'] = MF_FILES_URI.$data->meta_value;		
 				}
 				break;
 			case $FIELD_TYPES['date']:
-				$format = unserialize($data->properties);
+				$format = MF_safe_unserialize($data->properties);
 				$fieldValue = GetProcessedFieldValue($data->meta_value, $data->type, $format);
 				$info[$data->field_count] = $fieldValue;
 				break;
 	    case $FIELD_TYPES['Image (Upload Media)']:
   			if($data->meta_value != ""){
-  				$format = unserialize($data->properties);
+  				$format = MF_safe_unserialize($data->properties);
   				$image = wp_get_attachment_image_src($data->meta_value,'original');
   				if($format) $info[$data->order_id][$data->field_name][$data->field_count]['t'] = aux_image($image[0],$format['params'],$data->type);
 
@@ -768,7 +782,7 @@ function get_clean_field_duplicate($fieldName, $groupIndex=1,$post_id=NULL){
 	if(!$post_id){ $post_id = $post->ID; }
 	
 	$cache_name = $post_id.'/_fduplicates-'.$fieldName.'--'.$groupIndex.'.txt';
-	$data_fields = unserialize( MF_get_cached_data( $cache_name, FALSE ) );
+	$data_fields = MF_safe_unserialize( MF_get_cached_data( $cache_name, FALSE ) );
 	
 	// When field is set, but it's empty, it gets a NULL value, but still this value is cached
 	// therefore: if !is_null condition
@@ -807,7 +821,7 @@ function get_clean_field_duplicate($fieldName, $groupIndex=1,$post_id=NULL){
 					break;
 			case $FIELD_TYPES["checkbox_list"]:
 			case $FIELD_TYPES["listbox"]:
-					$info[$data->field_count] = unserialize($data->meta_value);
+					$info[$data->field_count] = MF_safe_unserialize($data->meta_value);
 				break;
 			case $FIELD_TYPES["audio"]:
 			case $FIELD_TYPES["file"]:
@@ -816,19 +830,19 @@ function get_clean_field_duplicate($fieldName, $groupIndex=1,$post_id=NULL){
 				break;
 			case $FIELD_TYPES['image']:
 				if($data->meta_value != ""){
-					$format = unserialize($data->properties);
+					$format = MF_safe_unserialize($data->properties);
 					if($format) $info[$data->field_count]['t'] = aux_image($data->meta_value,$format['params']);
 					$info[$data->field_count]['o'] = MF_FILES_URI.$data->meta_value;		
 				}
 				break;
 			case $FIELD_TYPES['date']:
-				$format = unserialize($data->properties);
+				$format = MF_safe_unserialize($data->properties);
 				$fieldValue = GetProcessedFieldValue($data->meta_value, $data->type, $format);
 				$info[$data->field_count] = $fieldValue;
 				break;
 	    case $FIELD_TYPES['Image (Upload Media)']:
   			if($data->meta_value != ""){
-  				$format = unserialize($data->properties);
+  				$format = MF_safe_unserialize($data->properties);
   				$image = wp_get_attachment_image_src($data->meta_value,'original');
   				if($format) $info[$data->order_id][$data->field_name][$data->field_count]['t'] = aux_image($image[0],$format['params'],$data->type);
 

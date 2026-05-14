@@ -4,10 +4,15 @@
  * Plugin URI: http://magicfields.org
  * Description: Create custom write panels and easily retrieve their values in your templates.
  * Author: Hunk
- * Version: 1.7.3
+ * Version: 1.7.4
  * Author URI: http://magicfields.org
  * Text Domain: magic-fields
  * Domain Path: /languages
+ * Requires at least: 6.0
+ * Requires PHP: 8.0
+ * Tested up to: 6.8
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
 
 /**

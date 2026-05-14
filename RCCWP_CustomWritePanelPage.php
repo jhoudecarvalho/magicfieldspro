@@ -168,9 +168,9 @@ class RCCWP_CustomWritePanelPage
 			<th scope="row" align="right"><?php _e('Standard Fields', $mf_domain); ?>:</th>
 			<td>
 				<?php
-					global $STANDARD_FIELDS, $wp_version;
+					global $STANDARD_FIELDS;
 					foreach ($STANDARD_FIELDS as $field) :
-						if ($field->excludeVersion <= substr($wp_version, 0, 3)) continue;
+						if ($field->excludeVersion <= floatval(mf_wp_version())) continue;
 						if ($field->isAdvancedField) continue;
 
 						$checked = "";
@@ -208,9 +208,9 @@ class RCCWP_CustomWritePanelPage
 			<th scope="row" align="right"><?php _e('Advanced Fields', $mf_domain); ?>:</th>
 			<td>
 				<?php
-					global $STANDARD_FIELDS, $wp_version;
+					global $STANDARD_FIELDS;
 					foreach ($STANDARD_FIELDS as $field) :
-						if ($field->excludeVersion <= substr($wp_version, 0, 3)) continue;
+						if ($field->excludeVersion <= floatval(mf_wp_version())) continue;
 						if (!$field->isAdvancedField) continue;
 
 						$checked = "";
@@ -315,7 +315,7 @@ class RCCWP_CustomWritePanelPage
 		<?php
 	}
 
-	function GetAssignedCategoriesString($customWritePanel)
+	public static function GetAssignedCategoriesString($customWritePanel)
 	{
 		$results = RCCWP_CustomWritePanel::GetAssignedCategories($customWritePanel);
 		$str = '';
@@ -327,7 +327,7 @@ class RCCWP_CustomWritePanelPage
 		return $str;
 	}
 
-	function GetStandardFieldsString($customWritePanel)
+	public static function GetStandardFieldsString($customWritePanel)
 	{
 		$results = RCCWP_CustomWritePanel::GetStandardFields($customWritePanel);
 		$str = '';
@@ -483,7 +483,7 @@ class RCCWP_CustomWritePanelPage
 		endforeach;
 	}
 
-  function save_order_fields() {
+  public static function save_order_fields() {
     global $wpdb;
     if(!empty($_POST) && is_numeric($_GET['custom-write-panel-id'])){
       foreach($_POST['mf_order'] as $group_id => $group) {
@@ -504,7 +504,7 @@ class RCCWP_CustomWritePanelPage
     );
   }
 
-	function Import()
+	public static function Import()
 	{
 		global $mf_domain;
 		include_once('RCCWP_CustomWritePanel.php');

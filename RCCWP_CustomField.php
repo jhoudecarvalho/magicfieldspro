@@ -49,13 +49,13 @@ class RCCWP_CustomField {
 	 */
 	public static function Create($customGroupId, $name, $label, $order = 1, $required_field = 0, $type = null, $options = null, $default_value = null, $properties = null, $duplicate = 0, $helptext = null, $css = null) {
 		global $wpdb;
-		$name = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+		$name = htmlspecialchars((string)$name, ENT_QUOTES, 'UTF-8');
 		$name = str_replace(" ","_",$name);
 
-		$label = htmlspecialchars($label, ENT_QUOTES, 'UTF-8');
-		
-		$helptext = htmlspecialchars($helptext, ENT_QUOTES, 'UTF-8');
-    
+		$label = htmlspecialchars((string)$label, ENT_QUOTES, 'UTF-8');
+
+		$helptext = htmlspecialchars((string)$helptext, ENT_QUOTES, 'UTF-8');
+
 		if(isset($_POST['custom-field-css'])) $css = filter_var($_POST['custom-field-css'], FILTER_SANITIZE_SPECIAL_CHARS);
 		$sql = $wpdb->prepare(
 			"INSERT INTO " . MF_TABLE_GROUP_FIELDS .
@@ -234,7 +234,10 @@ class RCCWP_CustomField {
 		$mid = (int) $fieldMetaID;
 		$sql = $wpdb->prepare( "SELECT * FROM $wpdb->postmeta WHERE meta_id = %d", array( $mid ) );
 		$meta = $wpdb->get_row( $sql );
-		if (!$single) return unserialize($meta->meta_value);
+		if (empty($meta)) {
+			return $single ? '' : array();
+		}
+		if (!$single) return maybe_unserialize($meta->meta_value);
 		return $meta->meta_value;
 	}
 	
@@ -382,14 +385,14 @@ class RCCWP_CustomField {
 		
 		$oldCustomField = RCCWP_CustomField::Get($customFieldId);
 
-		$name = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+		$name = htmlspecialchars((string)$name, ENT_QUOTES, 'UTF-8');
 		$name = str_replace(" ","_",$name);
 
-		$label = htmlspecialchars($label, ENT_QUOTES, 'UTF-8');
-		
-		$helptext = htmlspecialchars($helptext, ENT_QUOTES, 'UTF-8');
+		$label = htmlspecialchars((string)$label, ENT_QUOTES, 'UTF-8');
 
-		
+		$helptext = htmlspecialchars((string)$helptext, ENT_QUOTES, 'UTF-8');
+
+
 		if ($oldCustomField->name != $name) {
 			$sql = $wpdb->prepare( "UPDATE $wpdb->postmeta SET meta_key = %s WHERE meta_key = %s", array( $name,$oldCustomField->name ) );
 			$wpdb->query($sql);
@@ -488,10 +491,9 @@ class RCCWP_CustomField {
 
 		$groupIndex = (int) $groupIndex;
  		$fieldIndex = (int) $fieldIndex;
- 		$customFieldName = $wpdb->escape($customFieldName);
- 		$postId = $wpdb->escape($postId);
-		
-		$sql = $wpdb->prepare( "SELECT pm.meta_id,pm.meta_value, cf.id, cf.type,cf.CSS,fp.properties,cf.description 
+ 		$postId = (int) $postId;
+
+		$sql = $wpdb->prepare( "SELECT pm.meta_id,pm.meta_value, cf.id, cf.type,cf.CSS,fp.properties,cf.description
 			FROM ".MF_TABLE_POST_META." pm_mf, $wpdb->postmeta pm, ".MF_TABLE_GROUP_FIELDS." cf LEFT JOIN ".MF_TABLE_CUSTOM_FIELD_PROPERTIES." fp ON fp.custom_field_id = cf.id 
 			WHERE cf.name = %s AND cf.name = pm_mf.field_name AND group_count = %d AND field_count = %d AND pm_mf.post_id= %d AND pm_mf.id = pm.meta_id AND ( cf.group_id in ( SELECT mg.id FROM ".MF_TABLE_PANEL_GROUPS." mg, $wpdb->postmeta pm WHERE mg.panel_id = pm.meta_value AND pm.meta_key = '_mf_write_panel_id' AND pm.post_id = %d)
       OR cf.group_id IN (SELECT mg.id FROM ".MF_TABLE_PANEL_GROUPS." mg INNER JOIN ".MF_TABLE_PANELS." mfwp ON mg.panel_id = mfwp.id  WHERE mfwp.name = '_Global'))

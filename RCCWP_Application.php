@@ -25,8 +25,7 @@ class RCCWP_Application {
     	}
 
     	if(!$exists){
-    		$sql = $wpdb->prepare( "ALTER TABLE $db ADD $column $column_attr" );
-    		$wpdb->query($sql);
+    		$wpdb->query( "ALTER TABLE $db ADD $column $column_attr" );
     	}
 
 	}
@@ -40,9 +39,8 @@ class RCCWP_Application {
 		// Create capabilities if they are not installed
 		if (!current_user_can(MF_CAPABILITY_PANELS)){
 			$role = get_role('administrator');
-			if (!(RCCWP_Application::IsWordpressMu()) || (function_exists('is_site_admin') && is_site_admin()) || is_super_admin()){
+			if ($role && (!(RCCWP_Application::IsWordpressMu()) || (function_exists('is_site_admin') && is_site_admin()) || is_super_admin())){
 				$role->add_cap(MF_CAPABILITY_PANELS);
-				$role->add_cap(MAGIC_FIELDS_CAPABILITY_MODULES);
 			}
 			
 		}

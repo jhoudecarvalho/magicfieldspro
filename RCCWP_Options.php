@@ -23,11 +23,12 @@ class RCCWP_Options {
 	 *
 	 */
 	public static function Get($key = null) {
-		if (get_option(RC_CWP_OPTION_KEY) == "") return "";
-		if (is_array(get_option(RC_CWP_OPTION_KEY)))
-			$options = get_option(RC_CWP_OPTION_KEY);
+		$stored = get_option(RC_CWP_OPTION_KEY);
+		if ($stored == "") return "";
+		if (is_array($stored))
+			$options = $stored;
 		else
-			$options = unserialize(get_option(RC_CWP_OPTION_KEY));
+			$options = maybe_unserialize($stored);
 
 		if (!empty($key)){
 		  if( isset($options[$key]) ) return $options[$key];

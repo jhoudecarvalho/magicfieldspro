@@ -16,13 +16,19 @@ define('RC_CWP_POST_WRITE_PANEL_ID_META_KEY', '_mf_write_panel_id');
 define('RC_CWP_OPTION_KEY', 'mf_custom_write_panel');
 
 // Magic Fields paths
-preg_match('/wp-content(.*)(MF_Constant\.php)$/',__FILE__,$mfpath);
-$mfpath = str_replace('\\', '/', $mfpath);
-define('MF_PLUGIN_DIR', dirname(plugin_basename(__FILE__))); 
+define('MF_PLUGIN_DIR', dirname(plugin_basename(__FILE__)));
 define("MF_PATH", dirname(__FILE__));
 
 define("MF_URI", plugin_dir_url(__FILE__));
-define("MF_URI_RELATIVE", 'wp-content'.$mfpath[1]);
+
+$mfpath = array();
+preg_match('/wp-content(.*)(MF_Constant\.php)$/', str_replace('\\', '/', __FILE__), $mfpath);
+if (!empty($mfpath[1])) {
+	define("MF_URI_RELATIVE", 'wp-content'.$mfpath[1]);
+} else {
+	// Fallback when the plugin lives outside a standard wp-content path.
+	define("MF_URI_RELATIVE", str_replace(site_url('/'), '/', MF_URI));
+}
 define("PHPTHUMB",MF_URI."thirdparty/phpthumb/phpThumb.php");
 
 //if(!is_wp30()) {
@@ -260,12 +266,7 @@ define('MF_CACHE_NAME','cache');
 if($is_wordpress_mu){
 	$current_site = get_current_site();
 	
-	//check if WP3.0 is multisit
-	if(substr($wp_version, 0, 3) < 3.0){
-	  $path_content = str_replace(DIRECTORY_SEPARATOR."mu-plugins".DIRECTORY_SEPARATOR.MF_PLUGIN_DIR,"",MF_PATH);
-  }else{
-    $path_content = str_replace(DIRECTORY_SEPARATOR."plugins".DIRECTORY_SEPARATOR.MF_PLUGIN_DIR,"",MF_PATH);
-  }
+	$path_content = str_replace(DIRECTORY_SEPARATOR."plugins".DIRECTORY_SEPARATOR.MF_PLUGIN_DIR,"",MF_PATH);
 	$path_content = $path_content.DIRECTORY_SEPARATOR."blogs.dir".DIRECTORY_SEPARATOR.$blog_id;
 }else{
 	$path_content= str_replace(DIRECTORY_SEPARATOR."plugins".DIRECTORY_SEPARATOR.MF_PLUGIN_DIR,"",MF_PATH);
@@ -295,31 +296,30 @@ elseif(!file_exists( MF_GET_CACHE_DIR ) ) {
 define('MF_CAPABILITY_PANELS', "Create Magic Fields Panels");
 
 
+/**
+ * Return the running WordPress version as a string.
+ *
+ * The $wp_version global is not reliably available inside plugin scope on
+ * modern WordPress, so we read it through get_bloginfo() instead.
+ */
+function mf_wp_version(){
+	static $version = null;
+	if ($version === null) {
+		$version = function_exists('get_bloginfo') ? get_bloginfo('version') : '0';
+	}
+	return $version;
+}
+
 //return TRUE is WP version >= 3.0
 function is_wp30(){
-	global $wp_version;
-	
-	if(substr($wp_version, 0, 3) >= 3.0)
-		return TRUE;
-	 
-	return FALSE;
+	return version_compare(mf_wp_version(), '3.0', '>=');
 }
 
 //return TRUE is WP version >= 3.1
 function is_wp31(){
-	global $wp_version;
-	
-	if(substr($wp_version, 0, 3) >= 3.1)
-		return TRUE;
-	 
-	return FALSE;
+	return version_compare(mf_wp_version(), '3.1', '>=');
 }
 
 function is_wp39(){
-	global $wp_version;
-	
-	if(substr($wp_version, 0, 3) >= 3.9)
-		return TRUE;
-	 
-	return FALSE;
+	return version_compare(mf_wp_version(), '3.9', '>=');
 }

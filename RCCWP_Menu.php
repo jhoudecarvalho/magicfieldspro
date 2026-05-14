@@ -261,7 +261,7 @@ class RCCWP_Menu {
 	}
 	
 	public static function AttachCustomWritePanelMenuItems() {
-		global $submenu,$menu,$wp_version;
+		global $submenu,$menu;
 		global $mf_domain,$wpdb;
 		require_once ('RCCWP_Options.php');
 		$assignToRole = RCCWP_Options::Get('assign-to-role');
@@ -285,20 +285,11 @@ class RCCWP_Menu {
 		$offset=0;
 		$add_post =  false;
 		
-		// fix for WP 3.0
-		if(substr($wp_version, 0, 3) < 3.0){
-			  // WP <= 2.9
-			$page_new    = "page-new.php?";
-			$page_edit   = "page.php?";
-			$page_manage = "edit-pages.php?";
-    	}else{
-    	  	// WP > 3.0
-    	  	$page_new    = "post-new.php?post_type=page&";
-    		$page_edit   = "post.php?";
-    		$page_manage = "edit.php?post_type=page&";
-    	}
-			// end fix
-			
+		$page_new    = "post-new.php?post_type=page&";
+		$page_edit   = "post.php?";
+		$page_manage = "edit.php?post_type=page&";
+
+
 		foreach ($customWritePanels as $panel){
 			if ($panel->name != '_Global') { // traversal: fix to ignore the global group
 				//exists a single write panel? and if exists  this write panel have posts?
@@ -416,8 +407,8 @@ class RCCWP_Menu {
 			if($k > 5) $new_menu[(string) ($k + $offset)] = $v;
 		}
 
-                global $_wp_last_utility_menu;
-                $_wp_last_utility_menu += $offset;
+		// $_wp_last_utility_menu was removed from WordPress core (since 4.5);
+		// the offset bookkeeping it required is no longer needed.
 
 		$menu = $new_menu;
 		RCCWP_Menu::SetCurrentCustomWritePanelMenuItem();
@@ -425,7 +416,7 @@ class RCCWP_Menu {
 	}
 	
 
-	function AttachCustomWritePanelFavoriteActions()
+	public static function AttachCustomWritePanelFavoriteActions()
 	{
 		global $mf_domain;
 		require_once ('RCCWP_Options.php');
@@ -602,7 +593,7 @@ class RCCWP_Menu {
 
 	}
 	
-	function ShowPanel($panel){
+	public static function ShowPanel($panel){
 		return true;
 		require_once ('RCCWP_CustomWritePanel.php');
 		global $wpdb, $canvas;

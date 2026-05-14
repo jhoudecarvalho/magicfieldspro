@@ -25,7 +25,7 @@ class RCCWP_Processor {
 	 */
 	public static function Main() {
 		require_once('RC_Format.php');
-		global $CUSTOM_WRITE_PANEL,$wp_version;
+		global $CUSTOM_WRITE_PANEL;
 
 		if (isset($_POST['edit-with-no-custom-write-panel']))
 		{
@@ -38,15 +38,7 @@ class RCCWP_Processor {
 		}
 		else if (isset($_POST['edit-with-custom-write-panel']) && isset($_POST['custom-write-panel-id']) && (int) $_POST['custom-write-panel-id'] > 0)
 		{
-			if(substr($wp_version, 0, 3) >= 3.0){
-					$ptype = 'post';
-			}else{
-					$type = RCCWP_Post::GetCustomWritePanel();
-					if( is_object($type) )
-							$ptype = $type->type;
-					else
-							$ptype = (strpos($_SERVER['REQUEST_URI'], 'page.php') !== FALSE ) ? 'page' : 'post';
-			}
+			$ptype = 'post';
 			wp_redirect($ptype.'.php?action=edit&post=' . (int)$_POST['post-id'] . '&custom-write-panel-id=' . (int)$_POST['custom-write-panel-id']);
 		}
 

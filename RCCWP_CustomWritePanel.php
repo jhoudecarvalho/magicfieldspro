@@ -54,19 +54,19 @@ class RCCWP_CustomWritePanel {
      * @param boolean $createDefaultGroup indicates whether to create a default group.
      * @return the id of the write panel
      */
-    function Create($name, $description = '', $standardFields = array(), $categories = array(), $display_order = 1, $type = FALSE, $createDefaultGroup=true,$single_post = 0, $default_theme_page = NULL, $default_parent_page = NULL, $expanded = 0) {
+    public static function Create($name, $description = '', $standardFields = array(), $categories = array(), $display_order = 1, $type = FALSE, $createDefaultGroup=true,$single_post = 0, $default_theme_page = NULL, $default_parent_page = NULL, $expanded = 0) {
         include_once('RC_Format.php');
         global $wpdb;
 
-        $name = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
-        $description = htmlspecialchars($description, ENT_QUOTES, 'UTF-8');
+        $name = htmlspecialchars((string)$name, ENT_QUOTES, 'UTF-8');
+        $description = htmlspecialchars((string)$description, ENT_QUOTES, 'UTF-8');
 
 
         $capabilityName = RCCWP_CustomWritePanel::GetCapabilityName($name);
         if (!$type) $type = filter_var($_POST['radPostPage'], FILTER_SANITIZE_SPECIAL_CHARS);
 
-        $type = htmlspecialchars($type, ENT_QUOTES, 'UTF-8');
-        $capabilityName = htmlspecialchars($capabilityName, ENT_QUOTES, 'UTF-8');
+        $type = htmlspecialchars((string)$type, ENT_QUOTES, 'UTF-8');
+        $capabilityName = htmlspecialchars((string)$capabilityName, ENT_QUOTES, 'UTF-8');
 
         $sql = $wpdb->prepare(
             "INSERT INTO " . MF_TABLE_PANELS .
@@ -130,7 +130,7 @@ class RCCWP_CustomWritePanel {
      *
      * @param integer $customWritePanelId write panel id
      */
-    function Delete($customWritePanelId = null) {
+    public static function Delete($customWritePanelId = null) {
         if (isset($customWritePanelId)) {
             global $wpdb;
 
@@ -165,7 +165,7 @@ class RCCWP_CustomWritePanel {
      * @param string $name
      * @return the write panel id
      */
-    function GetIdByName($name) {
+    public static function GetIdByName($name) {
         global $wpdb;
 
         $sql = $wpdb->prepare( "SELECT id FROM ".MF_TABLE_PANELS." WHERE name = %s", array( $name ) );
@@ -318,8 +318,8 @@ class RCCWP_CustomWritePanel {
 
         $capabilityName = RCCWP_CustomWritePanel::GetCapabilityName($name);
 
-        $name = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
-        $description = htmlspecialchars($description, ENT_QUOTES, 'UTF-8');
+        $name = htmlspecialchars((string)$name, ENT_QUOTES, 'UTF-8');
+        $description = htmlspecialchars((string)$description, ENT_QUOTES, 'UTF-8');
 
         $sql = $wpdb->prepare(
             "UPDATE " . MF_TABLE_PANELS .
@@ -464,7 +464,7 @@ class RCCWP_CustomWritePanel {
      * @param boolean $overwrite whether to overwrite existing panels with the same name
      * @return the panel id, or false in case of error.
      */
-    function Import($panelFilePath, $writePanelName = false, $overwrite = false) {
+    public static function Import($panelFilePath, $writePanelName = false, $overwrite = false) {
         global $wpdb;
 
         include_once('RCCWP_CustomGroup.php');
@@ -489,7 +489,10 @@ class RCCWP_CustomWritePanel {
         }
 
         // Unserialize file
-        $imported_data = unserialize(file_get_contents($panelFilePath));
+        $imported_file = file_get_contents($panelFilePath);
+        if ($imported_file === false) return false;
+        $imported_data = unserialize($imported_file);
+        if (!is_array($imported_data) || !isset($imported_data['panel'])) return false;
         $types_results = RCCWP_CustomField::GetCustomFieldTypes();
         $types = array();
         foreach($types_results as $types_result) {
@@ -506,7 +509,7 @@ class RCCWP_CustomWritePanel {
         }
         //Create write panel
         if($writePanelID && $overwrite) {
-            RCCWP_CustomWritePanel::Update($existingPanelId, $writePanelName, $imported_data['panel']->description, $imported_data['panel']->standardFieldsIDs, $assignedCategories,$imported_data['panel']->display_order, $imported_data['panel']->type, false,$imported_data['panel']->single,$imported_data['panel']->theme, $imported_data['panel']->parent_page);
+            RCCWP_CustomWritePanel::Update($writePanelID, $writePanelName, $imported_data['panel']->description, $imported_data['panel']->standardFieldsIDs, $assignedCategories,$imported_data['panel']->display_order, $imported_data['panel']->type, false,$imported_data['panel']->single,$imported_data['panel']->theme, $imported_data['panel']->parent_page);
             foreach (RCCWP_CustomWritePanel::GetCustomGroups($writePanelID) as $group) {
                     RCCWP_CustomGroup::Delete($group->id);
             }
@@ -517,6 +520,7 @@ class RCCWP_CustomWritePanel {
                 foreach($imported_data['fields'] as $groupName => $group){
                     // For backward compatability
                     if (!isset($group->fields)) {
+                        $newGroup = new stdClass();
                         $newGroup->fields = $group;
                         $group = $newGroup;
                     }
@@ -547,7 +551,7 @@ class RCCWP_CustomWritePanel {
      * @param integer $panelID
      * @param string $exportedFilename the full path of the file to which the panel will be exported
      */
-    function Export($panelID){
+    public static function Export($panelID){
 
         include_once('RCCWP_CustomGroup.php');
         include_once('RCCWP_CustomField.php');
@@ -565,6 +569,7 @@ class RCCWP_CustomWritePanel {
             $writePanel->assignedCategories[] = $assignedCategory->cat_id;
         }
 
+        $groupFields = array();
         $moduleGroups = RCCWP_CustomWritePanel::GetCustomGroups($panelID);
         foreach( $moduleGroups as $moduleGroup) {
             $fields = RCCWP_CustomGroup::GetCustomFields($moduleGroup->id);
@@ -575,6 +580,7 @@ class RCCWP_CustomWritePanel {
                     unset($field->properties["panel_id"]);
                 }
             }
+            $groupFields[$moduleGroup->name] = new stdClass();
             $groupFields[$moduleGroup->name]->fields = $fields;
             $groupFields[$moduleGroup->name]->duplicate = $moduleGroup->duplicate;
             $groupFields[$moduleGroup->name]->at_right = $moduleGroup->at_right;
@@ -592,7 +598,7 @@ class RCCWP_CustomWritePanel {
      * @param integer $post_id
      * @return string
      */
-    function GetWritePanelName($post_id) {
+    public static function GetWritePanelName($post_id) {
         global $wpdb;
 
         if ($the_post = wp_is_post_revision($post_id)) {

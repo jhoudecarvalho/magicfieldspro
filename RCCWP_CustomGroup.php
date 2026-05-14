@@ -39,9 +39,9 @@ class RCCWP_CustomGroup {
 		require_once('RC_Format.php');
 		global $wpdb;
 
-		$name = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+		$name = htmlspecialchars((string)$name, ENT_QUOTES, 'UTF-8');
 
-		$wpdb->insert( 
+		$wpdb->insert(
 			MF_TABLE_PANEL_GROUPS, 
 			array( 
 				'panel_id' => $customWritePanelId, 
@@ -156,9 +156,9 @@ class RCCWP_CustomGroup {
 		require_once('RC_Format.php');
 		global $wpdb;
 
-		$name = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
-	
-		$wpdb->update( 
+		$name = htmlspecialchars((string)$name, ENT_QUOTES, 'UTF-8');
+
+		$wpdb->update(
 			MF_TABLE_PANEL_GROUPS, 
 			array( 
 				'name' => $name,

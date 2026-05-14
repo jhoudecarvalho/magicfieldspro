@@ -63,11 +63,11 @@ class RCCWP_CustomFieldPage{
 		</tr>
 		<tr valign="top">
 			<th scope="row"><?php _e('Name',$mf_domain); ?>:</th>
-			<td><input name="custom-field-name" id="custom-field-name" size="40" type="text" value="<?php echo htmlspecialchars($custom_field->name)?>" /><button id="bt-custom-field-name-suggest" class="button">Suggest</button></td>
+			<td><input name="custom-field-name" id="custom-field-name" size="40" type="text" value="<?php echo htmlspecialchars((string)$custom_field->name)?>" /><button id="bt-custom-field-name-suggest" class="button">Suggest</button></td>
 		</tr>
 		<tr valign="top">
 			<th scope="row"><?php _e('Help text',$mf_domain); ?>:</th>
-			<td><input name="custom-field-helptext" id="custom-field-helptext" size="40" type="text" value="<?php echo htmlspecialchars($custom_field->help_text)?>" /><br/><small><?php _e('If set, this will be displayed in a tooltip next to the field label',$mf_domain); ?></small></td>
+			<td><input name="custom-field-helptext" id="custom-field-helptext" size="40" type="text" value="<?php echo htmlspecialchars((string)$custom_field->help_text)?>" /><br/><small><?php _e('If set, this will be displayed in a tooltip next to the field label',$mf_domain); ?></small></td>
 		</tr>
 		<tr valign="top">
 			<th scope="row"><?php _e('Can be duplicated',$mf_domain); ?>:</th>

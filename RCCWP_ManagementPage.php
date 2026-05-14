@@ -4,7 +4,7 @@ include_once('RCCWP_Application.php');
 
 class RCCWP_ManagementPage
 {
-	function AssignCustomWritePanel()
+	public static function AssignCustomWritePanel()
 	{
 		global $mf_domain;
 		$postId = (int)$_GET['assign-custom-write-panel'];
@@ -55,31 +55,31 @@ class RCCWP_ManagementPage
 		<?php
 	}
 	
-	function GetCustomFieldEditUrl($customWriteModuleId, $customGroupId, $customFieldId)
+	public static function GetCustomFieldEditUrl($customWriteModuleId, $customGroupId, $customFieldId)
 	{
 		$url = '?page=' . 'Magic_FieldsManageModules' . '&edit-custom-field=' . $customFieldId . '&custom-group-id=' . $customGroupId . '&custom-write-module-id='. $customWriteModuleId ;
 		return $url;
 	}
 	
-	function GetCustomFieldDeleteUrl($customGroupId, $customFieldId)
+	public static function GetCustomFieldDeleteUrl($customGroupId, $customFieldId)
 	{
 		$url = '?page=' . 'Magic_FieldsManageModules' . '&delete-custom-field=' . $customFieldId . '&custom-group-id=' . $customGroupId;
 		return $url;
 	}
 
-	function GetModuleDuplicateEditUrl($customWriteModuleId, $duplicateId)
+	public static function GetModuleDuplicateEditUrl($customWriteModuleId, $duplicateId)
 	{
 		$url = '?page=' . 'Magic_FieldsManageModules' . '&edit-module-duplicate=' . $duplicateId . '&module-duplicate-id=' . $duplicateId . '&custom-write-module-id='. $customWriteModuleId ;
 		return $url;
 	}
 	
-	function GetModuleDuplicateDeleteUrl($customWriteModuleId, $duplicateId)
+	public static function GetModuleDuplicateDeleteUrl($customWriteModuleId, $duplicateId)
 	{
 		$url = '?page=' . 'Magic_FieldsManageModules' . '&delete-module-duplicate=' . $duplicateId . '&module-duplicate-id=' . $duplicateId . '&custom-write-module-id='. $customWriteModuleId ;
 		return $url;
 	}
 	
-	function GetCustomWritePanelEditUrl($customWritePanelId)
+	public static function GetCustomWritePanelEditUrl($customWritePanelId)
 	{
 		$url = '?page=' . urlencode(MF_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'RCCWP_Menu.php') . '&view-custom-write-panel=' . $customWritePanelId . '&custom-write-panel-id=' . $customWritePanelId;
 		return $url;
@@ -87,38 +87,38 @@ class RCCWP_ManagementPage
 	
 	
 	
-	function GetCustomWritePanelDeleteUrl($customWritePanelId)
+	public static function GetCustomWritePanelDeleteUrl($customWritePanelId)
 	{
 		$url = '?page=' . urlencode(MF_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'RCCWP_Menu.php') . '&delete-custom-write-panel=' . $customWritePanelId . '&custom-write-panel-id=' . $customWritePanelId;
 		return $url;
 	}
 
-	function GetCustomWriteModuleEditUrl($moduleId)
+	public static function GetCustomWriteModuleEditUrl($moduleId)
 	{
 		$url = '?page=' . 'Magic_FieldsManageModules' . '&view-custom-write-module=' . $moduleId . '&custom-write-module-id=' . $moduleId;
 		return $url;
 	}
 	
-	function GetCustomWriteModuleDeleteUrl($moduleId)
+	public static function GetCustomWriteModuleDeleteUrl($moduleId)
 	{
 		$url = '?page=' . 'Magic_FieldsManageModules' . '&delete-custom-write-module=' . $moduleId . '&custom-write-module-id=' . $moduleId;
 		return $url;
 	}
 
 
-	function GetCustomGroupEditUrl($groupId, $moduleId)
+	public static function GetCustomGroupEditUrl($groupId, $moduleId)
 	{
 		$url = '?page=' . urlencode(MF_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'RCCWP_Menu.php') . '&mf_action=view-custom-group&custom-group-id=' . $groupId. '&custom-write-module-id=' . $moduleId;
 		return $url;
 	}
 	
-	function GetCustomGroupDeleteUrl($groupId)
+	public static function GetCustomGroupDeleteUrl($groupId)
 	{
 		$url = '?page=' . 'Magic_FieldsManageModules' . '&delete-custom-group=' . $groupId . '&custom-group-id=' . $groupId;
 		return $url;
 	}
 
-	function GetCustomPanelModuleDeleteUrl($customWritePanelId, $panelModuleId)
+	public static function GetCustomPanelModuleDeleteUrl($customWritePanelId, $panelModuleId)
 	{
 		$url = '?page=' . urlencode(MF_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'RCCWP_Menu.php') . '&delete-custom-panel-module=' . $panelModuleId . '&custom-write-panel-id=' . $customWritePanelId;
 		return $url;

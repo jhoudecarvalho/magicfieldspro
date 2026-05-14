@@ -18,7 +18,7 @@ class RCCWP_Query
 	 *	panel was used for create the post/page, 
 	 *	this is executed if the "condese menu" option is active
 	 */
-	function ColumnWritePanel($defaults){
+	public static function ColumnWritePanel($defaults){
 		//put the write panel column in the third place of the table
 		$counter = 0;
 		$temp = array();
@@ -40,7 +40,7 @@ class RCCWP_Query
 	 *  Fill the new column Panel name
 	 *	This is executed if the "condense menu" option is active
 	 */
-	function ColumnWritePanelData($column_name){
+	public static function ColumnWritePanelData($column_name){
 		global $post;
 		
 		if($column_name == "WritePanel"){
